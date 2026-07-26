@@ -1,0 +1,88 @@
+{
+  "id": "TASK-023",
+  "title": "Document local service run instructions",
+  "objective": "Update repository documentation with concise instructions for running and testing the completed local HTTP service.",
+  "status": "done",
+  "priority": "medium",
+  "owner": {
+    "agent_id": "019f9954-0bf4-7d10-94a8-56ef18c92649",
+    "role": "implementer",
+    "branch": "unavailable-not-a-git-worktree",
+    "worktree": "C:/dev/pi/club-of-agents"
+  },
+  "scope": [
+    "Document how to run the local HTTP service",
+    "Document public endpoints and test command",
+    "Run final regression tests",
+    "Record test evidence and handoff"
+  ],
+  "allowed_paths": [
+    "tasks/active/TASK-023.json",
+    "README.md",
+    "logs/tests/TASK-023.md",
+    "docs/06-handoffs/TASK-023.md",
+    "logs/comms/coms1.md"
+  ],
+  "forbidden_paths": [
+    "src/**",
+    "tests/**",
+    ".github/workflows/**",
+    "database/migrations/**",
+    "package-lock.json"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "description": "README documents how to run the service locally.",
+      "verified": true,
+      "evidence": "README.md"
+    },
+    {
+      "id": "AC-2",
+      "description": "README documents endpoint behavior and test command.",
+      "verified": true,
+      "evidence": "README.md"
+    },
+    {
+      "id": "AC-3",
+      "description": "Regression tests pass after documentation update.",
+      "verified": true,
+      "evidence": "logs/tests/TASK-023.md \u00e2\u20ac\u201d node --test tests/health/health.test.mjs tests/server/server.test.mjs"
+    }
+  ],
+  "required_tests": [
+    "node --test tests/health/health.test.mjs tests/server/server.test.mjs"
+  ],
+  "dependencies": [
+    "TASK-022"
+  ],
+  "blocked_by": [],
+  "expected_artifacts": [
+    "README update",
+    "Test log",
+    "Handoff"
+  ],
+  "risk": {
+    "level": "low",
+    "reasons": [
+      "Documentation-only change plus regression verification"
+    ],
+    "reviewers": [
+      "reviewer"
+    ]
+  },
+  "audit": {
+    "started_at": "2026-07-25T14:45:00Z",
+    "completed_at": "2026-07-25T14:46:00Z",
+    "commits": [],
+    "pull_request": null,
+    "test_log": "logs/tests/TASK-023.md",
+    "handoff": "docs/06-handoffs/TASK-023.md",
+    "review": "logs/reviews/TASK-023.md",
+    "accepted_at": "2026-07-25T15:04:48Z"
+  },
+  "notes": [
+    "Created after final implementation verification to make the completed service easy to run. Current directory is not a Git repository, so branch and PR are unavailable.",
+    "Reviewed and approved under TASK-027 by agent/session 019f9954-2059-7601-b43d-24abcfe154e9 in logs/reviews/TASK-023.md on 2026-07-25T15:04:48Z."
+  ]
+}

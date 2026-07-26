@@ -1,0 +1,9 @@
+{
+  "id": "MSG-9aef6711634c",
+  "from": "worker-1",
+  "to": "reviewer",
+  "type": "task.ready_for_review",
+  "task_id": "TASK-001",
+  "timestamp": "2026-07-25T20:19:19.283618+00:00",
+  "payload": {}
+}

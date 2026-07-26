@@ -1,0 +1,94 @@
+{
+  "id": "TASK-006",
+  "title": "Add HTTP server shutdown helper",
+  "objective": "Add a small dependency-free shutdown helper so the local HTTP server can close cleanly in tests, scripts, and signal handlers.",
+  "status": "done",
+  "priority": "medium",
+  "owner": {
+    "agent_id": "019f9954-0bf4-7d10-94a8-56ef18c92649",
+    "role": "implementer",
+    "branch": "unavailable-not-a-git-worktree",
+    "worktree": "C:/dev/pi/club-of-agents"
+  },
+  "scope": [
+    "Export a promise-based server shutdown helper",
+    "Use the helper in CLI signal handling",
+    "Add unit/integration test coverage for shutdown behavior",
+    "Record documentation, test evidence, and handoff"
+  ],
+  "allowed_paths": [
+    "tasks/active/TASK-006.json",
+    "src/server/**",
+    "tests/server/**",
+    "docs/04-features/FEATURE-006-server-shutdown.md",
+    "logs/tests/TASK-006.md",
+    "docs/06-handoffs/TASK-006.md",
+    "logs/comms/coms1.md"
+  ],
+  "forbidden_paths": [
+    ".github/workflows/**",
+    "database/migrations/**",
+    "package-lock.json"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "description": "A promise-based helper closes a running HTTP server cleanly.",
+      "verified": true,
+      "evidence": "logs/tests/TASK-006.md \u00e2\u20ac\u201d node --test tests/health/health.test.mjs tests/server/server.test.mjs"
+    },
+    {
+      "id": "AC-2",
+      "description": "Calling the helper with no server is a safe no-op.",
+      "verified": true,
+      "evidence": "logs/tests/TASK-006.md \u00e2\u20ac\u201d node --test tests/health/health.test.mjs tests/server/server.test.mjs"
+    },
+    {
+      "id": "AC-3",
+      "description": "The CLI entry point installs SIGINT and SIGTERM shutdown handlers.",
+      "verified": true,
+      "evidence": "logs/tests/TASK-006.md \u00e2\u20ac\u201d node --test tests/health/health.test.mjs tests/server/server.test.mjs"
+    }
+  ],
+  "required_tests": [
+    "Integration test that a running server is closed by the shutdown helper",
+    "Unit test that no-op shutdown is safe",
+    "Regression tests for existing health, 404, logging, and config behavior"
+  ],
+  "dependencies": [
+    "TASK-002",
+    "TASK-003",
+    "TASK-004"
+  ],
+  "blocked_by": [],
+  "expected_artifacts": [
+    "Implementation",
+    "Feature document",
+    "Test log",
+    "Handoff"
+  ],
+  "risk": {
+    "level": "low",
+    "reasons": [
+      "No dependency, persistence, or external API changes"
+    ],
+    "reviewers": [
+      "reviewer"
+    ]
+  },
+  "audit": {
+    "started_at": "2026-07-25T13:41:00Z",
+    "completed_at": "2026-07-25T13:44:00Z",
+    "commits": [],
+    "pull_request": null,
+    "test_log": "logs/tests/TASK-006.md",
+    "handoff": "docs/06-handoffs/TASK-006.md",
+    "review": "logs/reviews/TASK-006.md",
+    "accepted_at": "2026-07-25T13:49:31Z"
+  },
+  "notes": [
+    "TASK-005 already exists for governance cleanup, so this task uses TASK-006. Current directory is not a Git repository, so branch and PR are unavailable.",
+    "Accepted by TASK-010 after coms4 review in logs/reviews/TASK-006.md.",
+    "Accepted under TASK-010 by project-master agent/session 019f9954-2059-7601-b43d-24abcfe154e9 on 2026-07-25T13:49:31Z after review evidence in logs/reviews/TASK-006.md."
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "id": "TASK-001",
+  "title": "Create health-check endpoint",
+  "objective": "Add a lightweight endpoint that reports whether the application process is available.",
+  "status": "backlog",
+  "priority": "medium",
+  "owner": {
+    "agent_id": "worker-1",
+    "role": "worker-1",
+    "branch": "unavailable-not-a-git-worktree",
+    "worktree": "C:\\dev\\pi\\club-of-agents"
+  },
+  "scope": [
+    "Add GET /health",
+    "Return a stable JSON contract",
+    "Add tests and documentation"
+  ],
+  "allowed_paths": [
+    "src/health/**",
+    "tests/health/**",
+    "docs/04-features/FEATURE-001-health-check.md",
+    "logs/tests/TASK-001.md",
+    "docs/06-handoffs/TASK-001.md"
+  ],
+  "forbidden_paths": [
+    ".github/workflows/**",
+    "database/migrations/**"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "description": "GET /health returns HTTP 200 when the process is healthy.",
+      "verified": true,
+      "evidence": "dummy provider"
+    },
+    {
+      "id": "AC-2",
+      "description": "Response contains a documented status field.",
+      "verified": true,
+      "evidence": "dummy provider"
+    }
+  ],
+  "required_tests": [
+    "Unit test for health response",
+    "Integration test for HTTP 200 and response schema"
+  ],
+  "dependencies": [],
+  "blocked_by": [],
+  "expected_artifacts": [
+    "Implementation",
+    "Feature document",
+    "Test log",
+    "Handoff",
+    "Pull request"
+  ],
+  "risk": {
+    "level": "low",
+    "reasons": [],
+    "reviewers": [
+      "reviewer"
+    ]
+  },
+  "audit": {
+    "started_at": "2026-07-25T20:16:48.585660+00:00",
+    "completed_at": null,
+    "commits": [],
+    "pull_request": null,
+    "test_log": null,
+    "handoff": null
+  },
+  "notes": [
+    "Implemented by dummy provider (worker-1)."
+  ]
+}

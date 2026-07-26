@@ -1,0 +1,31 @@
+name: Repository Policy
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate-structure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required files
+        run: |
+          test -f MASTER_CONTRACT.md
+          test -f docs/01-product/PRODUCT_OVERVIEW.md
+          test -f docs/02-architecture/SYSTEM_ARCHITECTURE.md
+          test -f docs/03-delivery/AGENT_OPERATING_MODEL.md
+          test -f schemas/task.schema.json
+
+      - name: Validate JSON syntax
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for p in Path("tasks").rglob("*.json"):
+              with p.open(encoding="utf-8") as f:
+                  json.load(f)
+              print(f"valid: {p}")
+          PY

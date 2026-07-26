@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+build/
+dist/
+
+# Node
+node_modules/
+
+# Editor/OS
+.vscode/
+.DS_Store
+
+# Scratch/manual-test logs
+server-*.log

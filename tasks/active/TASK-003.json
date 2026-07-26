@@ -1,0 +1,95 @@
+{
+  "id": "TASK-003",
+  "title": "Add server request logging hook",
+  "objective": "Add dependency-free request logging support to the minimal HTTP server without logging sensitive request data.",
+  "status": "done",
+  "priority": "medium",
+  "owner": {
+    "agent_id": "019f9954",
+    "role": "implementer",
+    "branch": "unavailable-not-a-git-worktree",
+    "worktree": "C:/dev/pi/club-of-agents"
+  },
+  "scope": [
+    "Allow the server factory and startup helper to accept an optional logger function",
+    "Log completed request method, pathname, status code, and duration",
+    "Exclude query strings and request bodies from log entries",
+    "Ensure logger failures do not alter response behavior",
+    "Add tests, documentation, and handoff evidence"
+  ],
+  "allowed_paths": [
+    "tasks/active/TASK-003.json",
+    "src/server/**",
+    "tests/server/**",
+    "docs/04-features/FEATURE-003-request-logging.md",
+    "logs/tests/TASK-003.md",
+    "docs/06-handoffs/TASK-003.md",
+    "logs/comms/coms2.md"
+  ],
+  "forbidden_paths": [
+    ".github/workflows/**",
+    "database/migrations/**",
+    "package-lock.json"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "description": "The server accepts an optional dependency-free logger function.",
+      "verified": true,
+      "evidence": "logs/tests/TASK-003.md; logs/reviews/TASK-003.md"
+    },
+    {
+      "id": "AC-2",
+      "description": "Completed requests log method, pathname, status code, and duration in milliseconds.",
+      "verified": true,
+      "evidence": "logs/tests/TASK-003.md; logs/reviews/TASK-003.md"
+    },
+    {
+      "id": "AC-3",
+      "description": "Log entries exclude query strings and request bodies, and logger failures do not change response behavior.",
+      "verified": true,
+      "evidence": "logs/tests/TASK-003.md; logs/reviews/TASK-003.md"
+    }
+  ],
+  "required_tests": [
+    "Regression tests for existing health and 404 behavior",
+    "Integration test for request logging fields",
+    "Privacy test proving query strings and bodies are not logged"
+  ],
+  "dependencies": [
+    "TASK-002"
+  ],
+  "blocked_by": [],
+  "expected_artifacts": [
+    "Implementation",
+    "Feature document",
+    "Test log",
+    "Handoff",
+    "Review log"
+  ],
+  "risk": {
+    "level": "low",
+    "reasons": [
+      "No dependency, persistence, or external API changes",
+      "Logger is optional and failures are isolated"
+    ],
+    "reviewers": [
+      "reviewer"
+    ]
+  },
+  "audit": {
+    "started_at": "2026-07-25T13:25:59Z",
+    "completed_at": "2026-07-25T13:27:09Z",
+    "commits": [],
+    "pull_request": null,
+    "test_log": "logs/tests/TASK-003.md",
+    "handoff": "docs/06-handoffs/TASK-003.md",
+    "review": "logs/reviews/TASK-003.md",
+    "accepted_at": "2026-07-25T13:39:13Z"
+  },
+  "notes": [
+    "Normalized by TASK-005 after a task-ID collision: the previous TASK-003 metadata described a TASK-002 review, while the implementation artifacts describe request logging.",
+    "Current directory is not a Git repository, so branch, commit, PR, and CI are unavailable.",
+    "Accepted under TASK-008 by project-master agent/session 019f9954-2059-7601-b43d-24abcfe154e9 on 2026-07-25T13:39:13Z after review evidence in logs/reviews/TASK-003.md."
+  ]
+}

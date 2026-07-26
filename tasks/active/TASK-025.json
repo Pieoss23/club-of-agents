@@ -1,0 +1,84 @@
+{
+  "id": "TASK-025",
+  "title": "Review TASK-021 service method metadata",
+  "objective": "Preserve agent 2's independent review of TASK-021 service method metadata after a local TASK-023 task-number collision.",
+  "status": "done",
+  "priority": "medium",
+  "owner": {
+    "agent_id": "019f9954-2059-7601-b43d-24abcfe154e9",
+    "role": "reviewer",
+    "branch": "unavailable-not-a-git-worktree",
+    "worktree": "C:/dev/pi/club-of-agents"
+  },
+  "scope": [
+    "Inspect TASK-021 task contract, implementation, tests, feature documentation, test log, and handoff",
+    "Verify service metadata lists GET, HEAD, and OPTIONS for public routes",
+    "Run health and server regression tests",
+    "Record review decision and collision note"
+  ],
+  "allowed_paths": [
+    "tasks/active/TASK-025.json",
+    "tasks/active/TASK-021.json",
+    "logs/reviews/TASK-021.md",
+    "logs/audit/2026-07-25.md",
+    "logs/comms/coms2.md"
+  ],
+  "forbidden_paths": [
+    "src/**",
+    "tests/**",
+    ".github/workflows/**",
+    "database/migrations/**",
+    "package-lock.json"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "description": "TASK-021 acceptance criteria are independently checked against implementation and tests.",
+      "verified": true,
+      "evidence": "logs/reviews/TASK-021.md"
+    },
+    {
+      "id": "AC-2",
+      "description": "Full health and server regression tests pass during review.",
+      "verified": true,
+      "evidence": "node --test tests/health/health.test.mjs tests/server/server.test.mjs — 23 passed, 0 failed"
+    },
+    {
+      "id": "AC-3",
+      "description": "TASK-021 is marked done without implementation edits by this reviewer.",
+      "verified": true,
+      "evidence": "tasks/active/TASK-021.json"
+    }
+  ],
+  "required_tests": [
+    "node --test tests/health/health.test.mjs tests/server/server.test.mjs"
+  ],
+  "dependencies": [
+    "TASK-021"
+  ],
+  "blocked_by": [],
+  "expected_artifacts": [
+    "Review log",
+    "Task acceptance update",
+    "Audit entry",
+    "Comms update"
+  ],
+  "risk": {
+    "level": "low",
+    "reasons": [
+      "Review-only task; no implementation files changed"
+    ],
+    "reviewers": []
+  },
+  "audit": {
+    "started_at": "2026-07-25T15:00:58Z",
+    "completed_at": "2026-07-25T15:00:58Z",
+    "commits": [],
+    "pull_request": null,
+    "test_log": "logs/reviews/TASK-021.md",
+    "handoff": null
+  },
+  "notes": [
+    "Created by direct user instruction: go forward. Attempted TASK-023 collided with another local channel's task file, so this review record is preserved as TASK-025. Current directory is not a Git repository, so branch and PR are unavailable."
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "id": "TASK-027",
+  "title": "Review TASK-023 local service run instructions",
+  "objective": "Independently review TASK-023 README run instructions, test evidence, and handoff before acceptance.",
+  "status": "done",
+  "priority": "medium",
+  "owner": {
+    "agent_id": "019f9954-2059-7601-b43d-24abcfe154e9",
+    "role": "reviewer",
+    "branch": "unavailable-not-a-git-worktree",
+    "worktree": "C:/dev/pi/club-of-agents"
+  },
+  "scope": [
+    "Inspect TASK-023 task contract, README update, test log, and handoff",
+    "Verify local run command, endpoint contract, and test command are documented",
+    "Run health and server regression tests",
+    "Record review decision and acceptance"
+  ],
+  "allowed_paths": [
+    "tasks/active/TASK-027.json",
+    "tasks/active/TASK-023.json",
+    "logs/reviews/TASK-023.md",
+    "logs/audit/2026-07-25.md",
+    "logs/comms/coms2.md"
+  ],
+  "forbidden_paths": [
+    "src/**",
+    "tests/**",
+    "README.md",
+    ".github/workflows/**",
+    "database/migrations/**",
+    "package-lock.json"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "description": "README documents how to run the local service and configure HOST/PORT.",
+      "verified": true,
+      "evidence": "README.md; logs/reviews/TASK-023.md"
+    },
+    {
+      "id": "AC-2",
+      "description": "README documents endpoint behavior and test command.",
+      "verified": true,
+      "evidence": "README.md; logs/reviews/TASK-023.md"
+    },
+    {
+      "id": "AC-3",
+      "description": "Regression tests pass during review and TASK-023 is marked done without documentation edits by reviewer.",
+      "verified": true,
+      "evidence": "node --test tests/health/health.test.mjs tests/server/server.test.mjs — 23 passed, 0 failed; tasks/active/TASK-023.json"
+    }
+  ],
+  "required_tests": [
+    "node --test tests/health/health.test.mjs tests/server/server.test.mjs"
+  ],
+  "dependencies": [
+    "TASK-023"
+  ],
+  "blocked_by": [],
+  "expected_artifacts": [
+    "Review log",
+    "Task acceptance update",
+    "Audit entry",
+    "Comms update"
+  ],
+  "risk": {
+    "level": "low",
+    "reasons": [
+      "Review-only task; no implementation or documentation files changed by reviewer"
+    ],
+    "reviewers": []
+  },
+  "audit": {
+    "started_at": "2026-07-25T15:04:48Z",
+    "completed_at": "2026-07-25T15:04:48Z",
+    "commits": [],
+    "pull_request": null,
+    "test_log": "logs/reviews/TASK-023.md",
+    "handoff": null
+  },
+  "notes": [
+    "Created by direct user instruction: go forward. Current directory is not a Git repository, so branch and PR are unavailable."
+  ]
+}

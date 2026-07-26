@@ -1,0 +1,93 @@
+{
+  "id": "TASK-010",
+  "title": "Add root service info endpoint",
+  "objective": "Add a lightweight root endpoint that describes the local HTTP service and its available routes without exposing sensitive runtime data.",
+  "status": "done",
+  "priority": "medium",
+  "owner": {
+    "agent_id": "019f9954-0bf4-7d10-94a8-56ef18c92649",
+    "role": "implementer",
+    "branch": "unavailable-not-a-git-worktree",
+    "worktree": "C:/dev/pi/club-of-agents"
+  },
+  "scope": [
+    "Add GET / service information response",
+    "Document the response contract and privacy boundaries",
+    "Add tests for root endpoint status and schema",
+    "Record test evidence and handoff"
+  ],
+  "allowed_paths": [
+    "tasks/active/TASK-010.json",
+    "src/server/**",
+    "tests/server/**",
+    "docs/04-features/FEATURE-010-root-service-info.md",
+    "logs/tests/TASK-010.md",
+    "docs/06-handoffs/TASK-010.md",
+    "logs/comms/coms1.md"
+  ],
+  "forbidden_paths": [
+    ".github/workflows/**",
+    "database/migrations/**",
+    "package-lock.json"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "description": "GET / returns HTTP 200 with JSON service metadata.",
+      "verified": true,
+      "evidence": "logs/tests/TASK-010.md \u00e2\u20ac\u201d node --test tests/health/health.test.mjs tests/server/server.test.mjs"
+    },
+    {
+      "id": "AC-2",
+      "description": "The root response lists the health endpoint without exposing secrets, environment variables, or request data.",
+      "verified": true,
+      "evidence": "logs/tests/TASK-010.md \u00e2\u20ac\u201d node --test tests/health/health.test.mjs tests/server/server.test.mjs"
+    },
+    {
+      "id": "AC-3",
+      "description": "Existing health, 404, logging, configuration, and shutdown behavior remains passing.",
+      "verified": true,
+      "evidence": "logs/tests/TASK-010.md \u00e2\u20ac\u201d node --test tests/health/health.test.mjs tests/server/server.test.mjs"
+    }
+  ],
+  "required_tests": [
+    "Integration test for GET / HTTP 200 and response schema",
+    "Regression tests for existing server behavior"
+  ],
+  "dependencies": [
+    "TASK-002",
+    "TASK-003",
+    "TASK-004",
+    "TASK-006"
+  ],
+  "blocked_by": [],
+  "expected_artifacts": [
+    "Implementation",
+    "Feature document",
+    "Test log",
+    "Handoff"
+  ],
+  "risk": {
+    "level": "low",
+    "reasons": [
+      "No dependency, persistence, or sensitive data changes"
+    ],
+    "reviewers": [
+      "reviewer"
+    ]
+  },
+  "audit": {
+    "started_at": "2026-07-25T13:51:00Z",
+    "completed_at": "2026-07-25T13:54:00Z",
+    "commits": [],
+    "pull_request": null,
+    "test_log": "logs/tests/TASK-010.md",
+    "handoff": "docs/06-handoffs/TASK-010.md",
+    "review": "logs/reviews/TASK-010.md",
+    "accepted_at": "2026-07-25T14:06:37Z"
+  },
+  "notes": [
+    "Task number chosen after observing TASK-007 through TASK-009 already exist. Current directory is not a Git repository, so branch and PR are unavailable.",
+    "Accepted under TASK-014 by project-master agent/session 019f9954-2059-7601-b43d-24abcfe154e9 on 2026-07-25T14:06:37Z after review evidence in logs/reviews/TASK-010.md."
+  ]
+}

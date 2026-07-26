@@ -1,0 +1,84 @@
+{
+  "id": "TASK-005",
+  "title": "Normalize TASK-003 request logging contract",
+  "objective": "Resolve the TASK-003 metadata collision by aligning the active task contract with the implemented request logging artifacts and recorded review evidence.",
+  "status": "review",
+  "priority": "high",
+  "owner": {
+    "agent_id": "019f9954",
+    "role": "project-master",
+    "branch": "unavailable-not-a-git-worktree",
+    "worktree": "C:/dev/pi/club-of-agents"
+  },
+  "scope": [
+    "Inspect TASK-003 implementation, documentation, test log, handoff, review log, and active task metadata",
+    "Replace stale TASK-003 review metadata with the request logging implementation contract",
+    "Record audit and comms evidence for the normalization"
+  ],
+  "allowed_paths": [
+    "tasks/active/TASK-005.json",
+    "tasks/active/TASK-003.json",
+    "logs/audit/2026-07-25.md",
+    "logs/comms/coms4.md"
+  ],
+  "forbidden_paths": [
+    "src/**",
+    "tests/**",
+    ".github/workflows/**",
+    "database/migrations/**",
+    "package-lock.json"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "description": "TASK-003 active task metadata describes request logging rather than TASK-002 review work.",
+      "verified": true,
+      "evidence": "tasks/active/TASK-003.json"
+    },
+    {
+      "id": "AC-2",
+      "description": "TASK-003 allowed paths match the already-created request logging implementation artifacts.",
+      "verified": true,
+      "evidence": "tasks/active/TASK-003.json"
+    },
+    {
+      "id": "AC-3",
+      "description": "Normalization is recorded in audit and comms without modifying implementation files.",
+      "verified": true,
+      "evidence": "logs/audit/2026-07-25.md; logs/comms/coms4.md"
+    }
+  ],
+  "required_tests": [
+    "No new implementation tests required; prior regression command remains node --test tests/health/health.test.mjs tests/server/server.test.mjs"
+  ],
+  "dependencies": [
+    "TASK-003"
+  ],
+  "blocked_by": [],
+  "expected_artifacts": [
+    "Normalized task contract",
+    "Audit entry",
+    "Comms update"
+  ],
+  "risk": {
+    "level": "medium",
+    "reasons": [
+      "Governance metadata correction touches task ownership and acceptance evidence after concurrent local agent edits"
+    ],
+    "reviewers": [
+      "project-master"
+    ]
+  },
+  "audit": {
+    "started_at": "2026-07-25T13:28:17Z",
+    "completed_at": "2026-07-25T13:28:33Z",
+    "commits": [],
+    "pull_request": null,
+    "test_log": null,
+    "handoff": null
+  },
+  "notes": [
+    "Created from user instruction: go forward. Current directory is not a Git repository, so branch, commit, and PR are unavailable.",
+    "TASK-004 is currently owned by another implementer for server configuration; TASK-005 was used to avoid another collision."
+  ]
+}

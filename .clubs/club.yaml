@@ -1,0 +1,48 @@
+version: 1
+club:
+  name: gege
+  type: software-development
+repository:
+  root: .
+  main_branch: main
+  master_contract: .clubs/context/MASTER_CONTRACT.md
+documentation:
+  product: docs/product/PRODUCT_OVERVIEW.md
+  architecture: docs/architecture/SYSTEM_ARCHITECTURE.md
+  delivery: docs/delivery/AGENT_OPERATING_MODEL.md
+  features: docs/features
+  decisions: docs/decisions
+  handoffs: docs/handoffs
+runtime:
+  communication: filesystem
+  polling_interval_seconds: 3
+  heartbeat_interval_seconds: 10
+  heartbeat_timeout_seconds: 60
+  max_tasks_per_agent: 1
+workflow:
+  pattern: master-workers
+agents:
+  master:
+    role: master
+    shell: dedicated
+    can_plan: true
+    can_code: false
+    can_review: false
+    can_assign: true
+    can_merge: true
+  worker-1:
+    role: worker-1
+    shell: dedicated
+    can_plan: false
+    can_code: true
+    can_review: false
+    can_assign: false
+    can_merge: false
+  worker-2:
+    role: worker-2
+    shell: dedicated
+    can_plan: false
+    can_code: true
+    can_review: false
+    can_assign: false
+    can_merge: false

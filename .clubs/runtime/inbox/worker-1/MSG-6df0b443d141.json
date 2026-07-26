@@ -1,0 +1,9 @@
+{
+  "id": "MSG-6df0b443d141",
+  "from": "master",
+  "to": "worker-1",
+  "type": "task.assigned",
+  "task_id": "TASK-001",
+  "timestamp": "2026-07-25T20:16:48.586799+00:00",
+  "payload": {}
+}

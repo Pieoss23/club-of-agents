@@ -1,0 +1,96 @@
+{
+  "id": "TASK-022",
+  "title": "Final implementation verification",
+  "objective": "Verify the implemented HTTP service end-to-end and record final test evidence and implementation summary.",
+  "status": "review",
+  "priority": "high",
+  "owner": {
+    "agent_id": "019f9954-0bf4-7d10-94a8-56ef18c92649",
+    "role": "implementer",
+    "branch": "unavailable-not-a-git-worktree",
+    "worktree": "C:/dev/pi/club-of-agents"
+  },
+  "scope": [
+    "Run full automated regression tests",
+    "Run a local HTTP smoke test for public endpoints and method behavior",
+    "Record final implementation summary, test evidence, and handoff"
+  ],
+  "allowed_paths": [
+    "tasks/active/TASK-022.json",
+    "logs/tests/TASK-022.md",
+    "docs/06-handoffs/TASK-022.md",
+    "logs/comms/coms1.md"
+  ],
+  "forbidden_paths": [
+    "src/**",
+    "tests/**",
+    ".github/workflows/**",
+    "database/migrations/**",
+    "package-lock.json"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-1",
+      "description": "Full automated health and server tests pass.",
+      "verified": true,
+      "evidence": "logs/tests/TASK-022.md — node --test tests/health/health.test.mjs tests/server/server.test.mjs"
+    },
+    {
+      "id": "AC-2",
+      "description": "Local HTTP smoke test verifies GET, HEAD, OPTIONS, 405, and 404 behavior.",
+      "verified": true,
+      "evidence": "logs/tests/TASK-022.md — PORT=0 node src/server/server.mjs plus curl smoke test"
+    },
+    {
+      "id": "AC-3",
+      "description": "Final handoff summarizes implemented features and remaining limitations.",
+      "verified": true,
+      "evidence": "docs/06-handoffs/TASK-022.md"
+    }
+  ],
+  "required_tests": [
+    "node --test tests/health/health.test.mjs tests/server/server.test.mjs",
+    "Local curl smoke test against node src/server/server.mjs"
+  ],
+  "dependencies": [
+    "TASK-001",
+    "TASK-002",
+    "TASK-003",
+    "TASK-004",
+    "TASK-006",
+    "TASK-010",
+    "TASK-011",
+    "TASK-012",
+    "TASK-014",
+    "TASK-017",
+    "TASK-021"
+  ],
+  "blocked_by": [],
+  "expected_artifacts": [
+    "Final test log",
+    "Final handoff",
+    "Comms update"
+  ],
+  "risk": {
+    "level": "low",
+    "reasons": [
+      "Verification-only task; no implementation files modified"
+    ],
+    "reviewers": [
+      "reviewer",
+      "project-master"
+    ]
+  },
+  "audit": {
+    "started_at": "2026-07-25T14:38:00Z",
+    "completed_at": "2026-07-25T14:41:00Z",
+    "commits": [],
+    "pull_request": null,
+    "test_log": "logs/tests/TASK-022.md",
+    "handoff": "docs/06-handoffs/TASK-022.md"
+  },
+  "notes": [
+    "Created from user request to go to end goal where all implementation and tests are complete. Current directory is not a Git repository, so branch and PR are unavailable.",
+    "Initial default-port smoke attempt found port 3000 already in use; final smoke used PORT=0 and passed."
+  ]
+}
