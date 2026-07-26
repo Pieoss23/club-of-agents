@@ -4,6 +4,7 @@ from pathlib import Path
 
 from clubs import patterns
 from clubs.initializer import initialize_club
+from clubs.models import AgentConfig
 from clubs.validator import validate_club
 
 from conftest import make_init_answers as answers
@@ -87,3 +88,48 @@ def test_missing_required_directory_is_reported(tmp_path: Path) -> None:
     (tmp_path / "tasks/backlog").rmdir()
     result = validate_club(tmp_path)
     assert any(issue.path == "tasks/backlog" for issue in result.issues)
+
+
+def test_text_only_provider_cannot_back_can_code(tmp_path: Path) -> None:
+    initialize_club(answers(
+        tmp_path, workflow_pattern=patterns.CUSTOM,
+        agents={"dev": AgentConfig(role="dev", can_code=True, provider="openai")},
+    ))
+    result = validate_club(tmp_path)
+    assert any(issue.path == "agents.dev.provider" for issue in result.issues)
+
+
+def test_text_only_provider_can_back_plan_and_review(tmp_path: Path) -> None:
+    initialize_club(answers(
+        tmp_path, workflow_pattern=patterns.CUSTOM,
+        agents={"lead": AgentConfig(role="lead", can_plan=True, can_review=True, provider="gemini")},
+    ))
+    result = validate_club(tmp_path)
+    assert result.ok, result.issues
+
+
+def test_can_bootstrap_requires_a_text_judgment_provider(tmp_path: Path) -> None:
+    initialize_club(answers(
+        tmp_path, workflow_pattern=patterns.CUSTOM,
+        agents={"master": AgentConfig(role="master", can_bootstrap=True, provider="dummy")},
+    ))
+    result = validate_club(tmp_path)
+    assert any(issue.path == "agents.master.can_bootstrap" for issue in result.issues)
+
+
+def test_can_bootstrap_with_claude_is_also_rejected_for_now(tmp_path: Path) -> None:
+    initialize_club(answers(
+        tmp_path, workflow_pattern=patterns.CUSTOM,
+        agents={"master": AgentConfig(role="master", can_bootstrap=True, provider="claude")},
+    ))
+    result = validate_club(tmp_path)
+    assert any(issue.path == "agents.master.can_bootstrap" for issue in result.issues)
+
+
+def test_can_bootstrap_with_ollama_is_valid(tmp_path: Path) -> None:
+    initialize_club(answers(
+        tmp_path, workflow_pattern=patterns.CUSTOM,
+        agents={"master": AgentConfig(role="master", can_bootstrap=True, provider="ollama")},
+    ))
+    result = validate_club(tmp_path)
+    assert result.ok, result.issues

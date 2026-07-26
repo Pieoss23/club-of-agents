@@ -9,7 +9,7 @@ import yaml
 from pydantic import ValidationError
 
 from clubs.initializer import REQUIRED_DIRECTORIES, ROLE_NAME
-from clubs.models import ClubConfig
+from clubs.models import PROVIDER_TYPES, TEXT_ONLY_PROVIDER_TYPES, ClubConfig
 from clubs.patterns import PATTERN_IDS
 
 CLUB_YAML_PATH = ".clubs/club.yaml"
@@ -64,9 +64,30 @@ def validate_club(root: Path) -> ValidationResult:
             f"Supported patterns: {', '.join(PATTERN_IDS)}.",
         ))
 
-    for role_id in config.agents:
+    for role_id, agent in config.agents.items():
         if not ROLE_NAME.fullmatch(role_id):
             issues.append(ValidationIssue(f"agents.{role_id}", "Role names must use lowercase letters, digits, and hyphens."))
+        if agent.provider not in PROVIDER_TYPES:
+            issues.append(ValidationIssue(
+                f"agents.{role_id}.provider",
+                f"Unknown provider '{agent.provider}'. Supported: {', '.join(PROVIDER_TYPES)}.",
+            ))
+        if agent.provider == "shell" and not agent.provider_command:
+            issues.append(ValidationIssue(
+                f"agents.{role_id}.provider_command", "provider 'shell' requires provider_command to be set.",
+            ))
+        if agent.can_code and agent.provider in TEXT_ONLY_PROVIDER_TYPES:
+            issues.append(ValidationIssue(
+                f"agents.{role_id}.provider",
+                f"'{agent.provider}' has no file-editing agency and cannot back can_code. "
+                "Use dummy, shell, claude, or codex instead.",
+            ))
+        if agent.can_bootstrap and agent.provider not in TEXT_ONLY_PROVIDER_TYPES:
+            issues.append(ValidationIssue(
+                f"agents.{role_id}.can_bootstrap",
+                f"can_bootstrap is only implemented for {', '.join(TEXT_ONLY_PROVIDER_TYPES)} "
+                f"(got '{agent.provider}').",
+            ))
 
     if not (root / config.repository.master_contract).is_file():
         issues.append(ValidationIssue(config.repository.master_contract, "Master Contract file is missing."))

@@ -13,6 +13,7 @@ from pydantic import BaseModel
 
 from clubs import messaging, tasks
 from clubs.adapters.base import Provider
+from clubs.adapters.errors import ProviderError
 from clubs.models import AgentConfig
 from clubs.tasks import now_iso
 
@@ -67,6 +68,26 @@ def load_polling_interval(root: Path) -> int:
     return raw["runtime"]["polling_interval_seconds"]
 
 
+def load_main_branch(root: Path) -> str:
+    raw = yaml.safe_load((root / ".clubs/club.yaml").read_text(encoding="utf-8"))
+    return raw["repository"]["main_branch"]
+
+
+def load_provider_timeout_seconds(root: Path) -> int:
+    raw = yaml.safe_load((root / ".clubs/club.yaml").read_text(encoding="utf-8"))
+    return raw.get("runtime", {}).get("provider_timeout_seconds", 600)
+
+
+def _safe_call(root: Path, agent_id: str, capability: str, fn) -> None:
+    """Run one provider capability; a ProviderError (real-provider subprocess failure,
+    timeout, or unparsable output) is logged and swallowed so it never crashes the
+    whole poll loop -- the agent just stays idle and retries next tick."""
+    try:
+        fn()
+    except ProviderError as error:
+        messaging.emit_event(root, "provider.failed", agent_id=agent_id, capability=capability, reason=str(error))
+
+
 def run_agent_tick(root: Path, agent_id: str, provider: Provider) -> AgentState:
     """Run one poll cycle for a single agent and return its resulting state."""
     agents = load_agents(root)
@@ -77,16 +98,25 @@ def run_agent_tick(root: Path, agent_id: str, provider: Provider) -> AgentState:
     write_state(root, agent_id, status="working", last_heartbeat=now_iso())
     messaging.route_messages(root)
 
+    messaging.process_communication_messages(root, agent_id)
+
+    if config.can_bootstrap:
+        _safe_call(root, agent_id, "configure", lambda: provider.configure(root, agent_id))
+        agents = load_agents(root)  # bootstrap may have just rewritten club.yaml
+        if agent_id not in agents:
+            raise UnknownAgentError(f"'{agent_id}' no longer exists in club.yaml after bootstrap.")
+        config = agents[agent_id]
+
     if config.can_plan:
-        provider.plan(root, agent_id)
+        _safe_call(root, agent_id, "plan", lambda: provider.plan(root, agent_id))
     if config.can_assign:
-        provider.assign(root, agent_id, agents)
+        _safe_call(root, agent_id, "assign", lambda: provider.assign(root, agent_id, agents))
     if config.can_code:
-        provider.implement(root, agent_id)
+        _safe_call(root, agent_id, "implement", lambda: provider.implement(root, agent_id))
     if config.can_review:
-        provider.review(root, agent_id)
+        _safe_call(root, agent_id, "review", lambda: provider.review(root, agent_id))
     if config.can_merge:
-        provider.merge(root, agent_id)
+        _safe_call(root, agent_id, "merge", lambda: provider.merge(root, agent_id))
 
     messaging.route_messages(root)
     current_task = tasks.find_task(root, "active", owner=agent_id)

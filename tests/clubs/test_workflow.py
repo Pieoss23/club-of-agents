@@ -71,6 +71,45 @@ def test_approve_review_sets_flag_without_moving_file(tmp_path: Path) -> None:
     assert saved["review_approved"] is True
 
 
+def test_reject_review_moves_review_to_active_with_owner_state_updated(tmp_path: Path) -> None:
+    initialize_club(answers(tmp_path))
+    task = tasks.create_task(tmp_path, mission_id="MISSION-001", title="A task", objective="Do something useful.")
+    workflow.assign_task(tmp_path, "coordinator", task, "developer", "developer")
+    tasks.move_task(tmp_path, task["id"], from_stage="active", to_stage="review")
+
+    moved = workflow.reject_review(tmp_path, "reviewer", task, ["Missing tests."])
+
+    assert moved == tmp_path / "tasks/active/TASK-001.json"
+    assert not (tmp_path / "tasks/review/TASK-001.json").exists()
+    saved = tasks.load_task(moved)
+    assert saved["review_approved"] is False
+    assert any("Missing tests." in note for note in saved["notes"])
+    state = runtime.read_state(tmp_path, "developer")
+    assert state.status == "assigned"
+    assert state.current_task_id == task["id"]
+
+
+def test_reject_review_without_findings_adds_generic_note(tmp_path: Path) -> None:
+    initialize_club(answers(tmp_path))
+    task = tasks.create_task(tmp_path, mission_id="MISSION-001", title="A task", objective="Do something useful.")
+    workflow.assign_task(tmp_path, "coordinator", task, "developer", "developer")
+    tasks.move_task(tmp_path, task["id"], from_stage="active", to_stage="review")
+
+    workflow.reject_review(tmp_path, "reviewer", task, [])
+
+    saved = tasks.load_task(tmp_path / "tasks/active/TASK-001.json")
+    assert "Review rejected: changes requested." in saved["notes"]
+
+
+def test_reject_review_returns_none_when_source_already_gone(tmp_path: Path) -> None:
+    initialize_club(answers(tmp_path))
+    task = tasks.create_task(tmp_path, mission_id="MISSION-001", title="A task", objective="Do something useful.")
+    workflow.assign_task(tmp_path, "coordinator", task, "developer", "developer")
+    tasks.move_task(tmp_path, task["id"], from_stage="active", to_stage="review")
+    tasks.move_task(tmp_path, task["id"], from_stage="review", to_stage="active")  # simulate already moved
+    assert workflow.reject_review(tmp_path, "reviewer", task, ["x"]) is None
+
+
 def test_integrate_moves_review_to_done(tmp_path: Path) -> None:
     initialize_club(answers(tmp_path))
     task = tasks.create_task(tmp_path, mission_id="MISSION-001", title="A task", objective="Do something useful.")
@@ -87,3 +126,23 @@ def test_integrate_returns_none_when_source_already_gone(tmp_path: Path) -> None
     tasks.move_task(tmp_path, task["id"], from_stage="backlog", to_stage="review")
     tasks.move_task(tmp_path, task["id"], from_stage="review", to_stage="done")
     assert workflow.integrate(tmp_path, "coordinator", task) is None
+
+
+def test_assign_task_creates_real_worktree_when_root_is_a_git_repo(git_repo: Path) -> None:
+    initialize_club(answers(git_repo))
+    task = tasks.create_task(git_repo, mission_id="MISSION-001", title="Add greet()", objective="Do something useful.")
+    workflow.assign_task(git_repo, "coordinator", task, "developer", "developer")
+
+    assert task["owner"]["branch"] == "agent/developer/TASK-001-add-greet"
+    worktree_path = Path(task["owner"]["worktree"])
+    assert worktree_path != git_repo
+    assert worktree_path.is_dir()
+
+
+def test_assign_task_falls_back_to_placeholder_when_not_a_git_repo(tmp_path: Path) -> None:
+    initialize_club(answers(tmp_path))
+    task = tasks.create_task(tmp_path, mission_id="MISSION-001", title="Add greet()", objective="Do something useful.")
+    workflow.assign_task(tmp_path, "coordinator", task, "developer", "developer")
+
+    assert task["owner"]["branch"] == "unavailable-not-a-git-worktree"
+    assert task["owner"]["worktree"] == str(tmp_path)

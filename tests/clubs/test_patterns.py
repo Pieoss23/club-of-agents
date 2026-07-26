@@ -16,7 +16,9 @@ def test_planner_developer_reviewer_coordinator_assigns_known_capabilities() -> 
 
 def test_planner_developer_reviewer_coordinator_unknown_name_gets_no_capabilities() -> None:
     agents = patterns.planner_developer_reviewer_coordinator(("planner", "extra"))
-    assert agents["extra"].model_dump(exclude={"role", "shell"}) == {
+    assert agents["extra"].model_dump(exclude={
+        "role", "shell", "provider", "provider_command", "provider_model", "provider_base_url", "can_bootstrap",
+    }) == {
         "can_plan": False, "can_code": False, "can_review": False, "can_assign": False, "can_merge": False,
     }
 

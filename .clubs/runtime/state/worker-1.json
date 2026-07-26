@@ -1,6 +1,6 @@
 {
-  "status": "idle",
+  "status": "waiting",
   "current_task_id": null,
-  "last_heartbeat": "2026-07-25T20:20:46.636776+00:00",
-  "updated_at": "2026-07-25T20:20:46.645622+00:00"
+  "last_heartbeat": "2026-07-26T21:39:07.083402+00:00",
+  "updated_at": "2026-07-26T21:39:07.083721+00:00"
 }

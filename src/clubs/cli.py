@@ -10,9 +10,19 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from clubs import __version__, banner, interactive, patterns, runtime, tasks
+from clubs import __version__, banner, git_ops, interactive, patterns, runtime, tasks, workflow
+from clubs.communication import ping as agent_ping
+from clubs.adapters.base import Provider
+from clubs.adapters.claude import ClaudeProvider
+from clubs.adapters.codex import CodexProvider
 from clubs.adapters.dummy import DummyProvider
+from clubs.adapters.gemini import GeminiProvider
+from clubs.adapters.ollama import OllamaProvider
+from clubs.adapters.openai_provider import OpenAIProvider
+from clubs.adapters.openrouter import OpenRouterProvider
+from clubs.adapters.shell import ShellProvider
 from clubs.initializer import InitAnswers, InitializationError, initialize_club
+from clubs.listener import listen as agent_listen
 from clubs.missions import MissionError, create_mission
 from clubs.models import AgentConfig, DEFAULT_ROLE_IDS, MISSION_PRIORITIES
 from clubs.status import StatusError, collect_status
@@ -24,6 +34,8 @@ agent_app = typer.Typer(name="agent", help="Inspect and manage club agents.", ad
 mission_app = typer.Typer(name="mission", help="Create and manage missions.", add_completion=False)
 task_app = typer.Typer(name="task", help="Create and inspect tasks.", add_completion=False)
 app.add_typer(agent_app, name="agent")
+agent_app.command("ping")(agent_ping)
+agent_app.command("listen")(agent_listen)
 app.add_typer(mission_app, name="mission")
 app.add_typer(task_app, name="task")
 console = Console()
@@ -31,11 +43,11 @@ PATH_OPTION = typer.Option(Path("."), "--path", help="Repository root to operate
 ROLE_NAME_SUGGESTIONS = [*DEFAULT_ROLE_IDS, "architect", "backend", "frontend", "tester", "security", "devops"]
 
 
+PROJECT_TYPES = (("software-development", "Software development"),)
+
+
 def _prompt_project_type() -> str:
-    project_type = typer.prompt("Project type", default="software-development").strip()
-    if project_type != "software-development":
-        raise typer.BadParameter("Version 0.1.0 supports only 'software-development'.")
-    return project_type
+    return interactive.select_one("Project type", list(PROJECT_TYPES), default="software-development")
 
 
 def _choose_pattern() -> str:
@@ -161,7 +173,7 @@ def _show_menu() -> None:
             "Agent to start", [(agent_id, f"{agent_id} ({config.role})") for agent_id, config in agents.items()],
             default=next(iter(agents), ""),
         )
-        _run_agent_start(agent_id, Path("."))
+        _run_agent_start(agent_id, Path("."), None)
     elif selection != "7":
         console.print("That action is planned for a later milestone.")
 
@@ -253,7 +265,36 @@ def agent_list(path: Path = PATH_OPTION) -> None:
     _run_agent_list(path)
 
 
-def _run_agent_start(agent_id: str, path: Path) -> None:
+def _build_provider(provider_type: str, config: AgentConfig, timeout: int) -> Provider:
+    if provider_type == "dummy":
+        return DummyProvider(work_seconds=1.5)
+    if provider_type == "claude":
+        return ClaudeProvider(timeout=timeout)
+    if provider_type == "codex":
+        return CodexProvider(timeout=timeout)
+    if provider_type == "shell":
+        if not config.provider_command:
+            raise typer.BadParameter("provider 'shell' requires provider_command to be set in club.yaml.")
+        return ShellProvider(command=config.provider_command, timeout=timeout)
+    if provider_type == "ollama":
+        kwargs = {"timeout": timeout}
+        if config.provider_model:
+            kwargs["model"] = config.provider_model
+        if config.provider_base_url:
+            kwargs["base_url"] = config.provider_base_url
+        return OllamaProvider(**kwargs)
+    if provider_type == "openai":
+        return OpenAIProvider(timeout=timeout, **({"model": config.provider_model} if config.provider_model else {}))
+    if provider_type == "gemini":
+        return GeminiProvider(timeout=timeout, **({"model": config.provider_model} if config.provider_model else {}))
+    if provider_type == "openrouter":
+        return OpenRouterProvider(timeout=timeout, **({"model": config.provider_model} if config.provider_model else {}))
+    raise typer.BadParameter(
+        f"Unknown provider '{provider_type}'. Supported: dummy, shell, claude, codex, ollama, openai, gemini, openrouter."
+    )
+
+
+def _run_agent_start(agent_id: str, path: Path, provider_override: str | None) -> None:
     root = path.expanduser().resolve()
     try:
         agents = runtime.load_agents(root)
@@ -264,11 +305,23 @@ def _run_agent_start(agent_id: str, path: Path) -> None:
         console.print(f"[red]'{agent_id}' is not a configured agent. Known agents: {', '.join(agents)}[/red]")
         raise typer.Exit(code=1)
 
-    console.print(
-        f"Starting agent '{agent_id}' ({agents[agent_id].role}). Uses the dummy provider "
-        "(mechanical bookkeeping only, no real code generation yet). Press Ctrl+C to stop."
-    )
-    provider = DummyProvider(work_seconds=1.5)
+    config = agents[agent_id]
+    provider_type = provider_override or config.provider
+    timeout = runtime.load_provider_timeout_seconds(root)
+    provider = _build_provider(provider_type, config, timeout)
+
+    if provider_type == "dummy":
+        console.print(
+            f"Starting agent '{agent_id}' ({config.role}). Uses the dummy provider "
+            "(mechanical bookkeeping only, no real code generation). Press Ctrl+C to stop."
+        )
+    else:
+        console.print(
+            f"[yellow bold]Starting agent '{agent_id}' ({config.role}) with the '{provider_type}' provider.[/yellow bold]\n"
+            f"[yellow]This invokes a real AI CLI UNATTENDED: it can edit files and run shell commands "
+            f"in this agent's isolated worktree, and it will spend real API credits. "
+            f"Timeout per call: {timeout}s. Press Ctrl+C to stop.[/yellow]"
+        )
     interval = runtime.load_polling_interval(root)
     try:
         while True:
@@ -280,9 +333,13 @@ def _run_agent_start(agent_id: str, path: Path) -> None:
 
 
 @agent_app.command("start")
-def agent_start(agent_id: str, path: Path = PATH_OPTION) -> None:
-    """Run one agent's poll loop until Ctrl+C. Uses the dummy provider (no real code generation yet)."""
-    _run_agent_start(agent_id, path)
+def agent_start(
+    agent_id: str,
+    path: Path = PATH_OPTION,
+    provider: str = typer.Option(None, "--provider", help="Override the configured provider (dummy/shell/claude/codex) for this run."),
+) -> None:
+    """Run one agent's poll loop until Ctrl+C. Defaults to the provider configured in club.yaml (dummy unless set)."""
+    _run_agent_start(agent_id, path, provider)
 
 
 def _run_mission_create(path: Path) -> None:
@@ -389,6 +446,60 @@ def _run_task_show(task_id: str, path: Path) -> None:
 def task_show(task_id: str, path: Path = PATH_OPTION) -> None:
     """Show a task's full JSON, wherever it currently is."""
     _run_task_show(task_id, path)
+
+
+def _find_cleanup_candidates(root: Path) -> list[tuple[dict, Path]]:
+    candidates = []
+    done_dir = root / "tasks/done"
+    if not done_dir.is_dir():
+        return candidates
+    for task_path in sorted(done_dir.glob("TASK-*.json")):
+        task = tasks.load_task(task_path)
+        worktree = workflow.real_worktree(root, task)
+        if worktree is not None:
+            candidates.append((task, worktree))
+    return candidates
+
+
+def _run_task_cleanup(path: Path, auto_yes: bool) -> None:
+    root = path.expanduser().resolve()
+    candidates = _find_cleanup_candidates(root)
+    if not candidates:
+        console.print("No worktrees to clean up.")
+        return
+
+    table = Table("Task", "Branch", "Worktree")
+    for task, worktree in candidates:
+        table.add_row(task["id"], task["owner"]["branch"], str(worktree))
+    console.print(table)
+
+    if not auto_yes:
+        confirmed = typer.confirm(
+            f"Remove {len(candidates)} worktree(s) and their branch(es)? "
+            "This permanently deletes each worktree directory and branch, including any uncommitted changes.",
+            default=False,
+        )
+        if not confirmed:
+            console.print("Aborted.")
+            raise typer.Exit(code=1)
+
+    for task, worktree in candidates:
+        try:
+            git_ops.remove_worktree(root, worktree)
+            git_ops.delete_branch(root, task["owner"]["branch"])
+        except git_ops.GitError as error:
+            console.print(f"[red]Failed to clean up {task['id']}: {error}[/red]")
+            continue
+        console.print(f"[green]Cleaned up {task['id']}.[/green]")
+
+
+@task_app.command("cleanup")
+def task_cleanup(
+    path: Path = PATH_OPTION,
+    yes: bool = typer.Option(False, "--yes", help="Skip the confirmation prompt."),
+) -> None:
+    """Remove Git worktrees/branches for done tasks that still have one on disk."""
+    _run_task_cleanup(path, yes)
 
 
 def main() -> None:

@@ -1,0 +1,11 @@
+{
+  "id": "MSG-138076e01550",
+  "from": "worker-1",
+  "to": "worker-2",
+  "type": "communication.ping",
+  "task_id": null,
+  "timestamp": "2026-07-26T20:32:39.974010+00:00",
+  "payload": {
+    "message": "safe communication check"
+  }
+}

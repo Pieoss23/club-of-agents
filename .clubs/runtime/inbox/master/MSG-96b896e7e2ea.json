@@ -1,0 +1,12 @@
+{
+  "id": "MSG-96b896e7e2ea",
+  "from": "worker-2",
+  "to": "master",
+  "type": "communication.pong",
+  "task_id": null,
+  "timestamp": "2026-07-26T20:32:39.296020+00:00",
+  "payload": {
+    "ping_id": "MSG-3aa51ec81526",
+    "message": "communication diagnostic"
+  }
+}

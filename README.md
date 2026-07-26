@@ -1,98 +1,55 @@
-# Agentic Shared Project
+# Clubs of Agents (`club`)
 
-A GitHub repository structure for multiple AI agents working on the same project without overwriting each other, duplicating work, or losing context.
+A local, provider-agnostic CLI that turns a normal Git repository into a structured
+multi-agent development environment: a shared `club.yaml`, a document pyramid, a
+filesystem message bus, Git worktree isolation per task, and pluggable "provider"
+adapters (a safe mechanical dummy, a generic shell script, Claude Code, or Codex) that
+actually do the planning/implementing/reviewing.
 
-## Core operating principle
+The repository is the durable shared memory. Nothing here depends on a database, a
+web dashboard, or a specific LLM vendor — see `docs/cli/architecture.md`.
 
-Each agent:
-
-1. works in its own Git worktree and branch;
-2. owns an explicitly assigned task;
-3. edits only files allowed by the task contract;
-4. records decisions, tests, inputs, outputs, and changed files;
-5. opens a pull request;
-6. never merges its own work unless explicitly authorized.
-
-The repository is the shared memory. Git branches isolate implementation. Structured task files coordinate ownership.
-
-## Recommended local setup
+## Quickstart
 
 ```bash
-git clone <repository-url>
-cd <repository>
-
-git worktree add ../project-agent-architect -b agent/architect/main
-git worktree add ../project-agent-backend -b agent/backend/main
-git worktree add ../project-agent-reviewer -b agent/reviewer/main
+pip install -e .
+club init          # interactive wizard: name, collaboration pattern, roles, Master Contract location
+club validate       # check the generated config/docs/folders
+club mission create # describe a goal in one sentence
+club task create    # decompose it into a task under that mission
+club agent start developer   # run one agent's poll loop (dummy provider by default)
+club status         # see agents, task counts, missions at a glance
 ```
 
-Run one agent in each terminal and worktree.
+Full walkthrough: [docs/cli/quickstart.md](docs/cli/quickstart.md).
 
-## Local HTTP service
+## Documentation
 
-This repository now includes a dependency-free Node.js HTTP service.
+- [docs/cli/installation.md](docs/cli/installation.md) — requirements, editable install, verifying the `club` command.
+- [docs/cli/quickstart.md](docs/cli/quickstart.md) — a full lifecycle, start to finish.
+- [docs/cli/commands.md](docs/cli/commands.md) — every command and flag.
+- [docs/cli/configuration.md](docs/cli/configuration.md) — `club.yaml` reference.
+- [docs/cli/patterns.md](docs/cli/patterns.md) — the 5 collaboration patterns and the roles/capabilities each one generates.
+- [docs/cli/workflow.md](docs/cli/workflow.md) — the task lifecycle, Git isolation, path policy, PR drafts.
+- [docs/cli/providers.md](docs/cli/providers.md) — dummy/shell/Claude/Codex adapters, including the real, unattended-execution safety notes.
+- [docs/cli/architecture.md](docs/cli/architecture.md) — module map and contributor guide.
 
-Run it locally:
+## Project status
 
-```bash
-node src/server/server.mjs
-```
+All 10 milestones from the original design brief are implemented: CLI skeleton, init
+wizard, validation, status, missions/tasks, the filesystem message bus, the agent
+runner, the stage-transition workflow engine, Git worktree isolation, and provider
+adapters (shell/Claude/Codex). See `python -m pytest -q` (123 tests) for the current
+regression suite.
 
-Optional configuration:
+## The dogfooded example project
 
-```bash
-HOST=127.0.0.1 PORT=3000 node src/server/server.mjs
-```
+Before this CLI existed, this same repository was used to prove out its document/task
+conventions by hand — a small Node.js health-check HTTP service built via simulated
+planner/developer/reviewer agents. That history (and how to run it) is preserved in
+[docs/dogfood-example.md](docs/dogfood-example.md); it's a real example of the workflow
+`club` now automates, not part of the CLI itself.
 
-Use `PORT=0` to bind an ephemeral local port for smoke tests.
+## License
 
-Public contract:
-
-| Method | Path | Response |
-|---|---|---|
-| `GET` | `/` | `200` service metadata |
-| `HEAD` | `/` | `200` headers only, no body |
-| `OPTIONS` | `/` | `204`, `Allow: GET, HEAD, OPTIONS` |
-| `GET` | `/health` | `200`, `{ "status": "ok" }` |
-| `HEAD` | `/health` | `200` headers only, no body |
-| `OPTIONS` | `/health` | `204`, `Allow: GET, HEAD, OPTIONS` |
-| unsupported method | `/` or `/health` | `405` JSON `method_not_allowed` |
-| any method | unknown path | `404` JSON `not_found` |
-
-Run tests:
-
-```bash
-node --test tests/health/health.test.mjs tests/server/server.test.mjs
-```
-
-Final local verification is recorded in `logs/tests/TASK-022.md` and `docs/06-handoffs/TASK-022.md`.
-
-## Main documents
-
-- `MASTER_CONTRACT.md` — project constitution and non-negotiable rules.
-- `docs/01-product/PRODUCT_OVERVIEW.md` — what is being built and why.
-- `docs/02-architecture/SYSTEM_ARCHITECTURE.md` — high-level technical design.
-- `docs/03-delivery/AGENT_OPERATING_MODEL.md` — how agents coordinate and deliver.
-- `docs/00-governance/DEVELOPMENT_STANDARD.md` — implementation rules.
-- `docs/00-governance/AUDIT_STANDARD.md` — audit requirements.
-- `docs/00-governance/TEST_STANDARD.md` — test evidence requirements.
-- `docs/03-delivery/CI_CD_STANDARD.md` — CI/CD policy.
-
-## Task lifecycle
-
-```text
-backlog -> active -> review -> done
-```
-
-A task moves between directories. The task JSON is the source of truth for status, ownership, scope, dependencies, and evidence.
-
-## Golden rule
-
-No agent starts implementation without an assigned task JSON containing:
-
-- one owner;
-- allowed files or directories;
-- acceptance criteria;
-- dependencies;
-- required tests;
-- expected output.
+MIT — see [LICENSE](LICENSE).

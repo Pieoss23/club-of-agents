@@ -27,7 +27,7 @@ def test_init_wizard_creates_club(tmp_path, monkeypatch) -> None:
     result = runner.invoke(
         app,
         ["init"],
-        input="Example Club\nsoftware-development\n.\nmain\n1\n4\nplanner\ndeveloper\nreviewer\ncoordinator\n1\n",
+        input="Example Club\n1\n.\nmain\n1\n4\nplanner\ndeveloper\nreviewer\ncoordinator\n1\n",
     )
     assert result.exit_code == 0, result.output
     assert (tmp_path / ".clubs/club.yaml").is_file()
@@ -39,7 +39,7 @@ def test_init_wizard_supports_master_workers_pattern(tmp_path, monkeypatch) -> N
     result = runner.invoke(
         app,
         ["init"],
-        input="Example Club\nsoftware-development\n.\nmain\n2\n3\n1\n",
+        input="Example Club\n1\n.\nmain\n2\n3\n1\n",
     )
     assert result.exit_code == 0, result.output
     config = yaml.safe_load((tmp_path / ".clubs/club.yaml").read_text(encoding="utf-8"))
@@ -51,7 +51,7 @@ def test_task_create_list_show_end_to_end(tmp_path, monkeypatch) -> None:
     monkeypatch.chdir(tmp_path)
     init_result = runner.invoke(
         app, ["init"],
-        input="Example Club\nsoftware-development\n.\nmain\n1\n4\nplanner\ndeveloper\nreviewer\ncoordinator\n1\n",
+        input="Example Club\n1\n.\nmain\n1\n4\nplanner\ndeveloper\nreviewer\ncoordinator\n1\n",
     )
     assert init_result.exit_code == 0, init_result.output
 
@@ -82,8 +82,19 @@ def test_task_show_reports_unknown_id(tmp_path, monkeypatch) -> None:
     monkeypatch.chdir(tmp_path)
     runner.invoke(
         app, ["init"],
-        input="Example Club\nsoftware-development\n.\nmain\n1\n4\nplanner\ndeveloper\nreviewer\ncoordinator\n1\n",
+        input="Example Club\n1\n.\nmain\n1\n4\nplanner\ndeveloper\nreviewer\ncoordinator\n1\n",
     )
     result = runner.invoke(app, ["task", "show", "TASK-999"])
     assert result.exit_code == 1
     assert "not found" in result.output
+
+
+def test_task_cleanup_reports_nothing_when_no_worktrees_exist(tmp_path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    runner.invoke(
+        app, ["init"],
+        input="Example Club\n1\n.\nmain\n1\n4\nplanner\ndeveloper\nreviewer\ncoordinator\n1\n",
+    )
+    result = runner.invoke(app, ["task", "cleanup", "--yes"])
+    assert result.exit_code == 0, result.output
+    assert "No worktrees to clean up" in result.output

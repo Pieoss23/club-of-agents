@@ -5,11 +5,14 @@ from pathlib import Path
 
 import jsonschema
 import pytest
+import yaml
 
 from clubs import runtime, tasks
 from clubs.adapters.dummy import DummyProvider
+from clubs.adapters.ollama import OllamaProvider
 from clubs.initializer import initialize_club
 from clubs.missions import create_mission
+from clubs.models import AgentConfig
 
 from conftest import make_init_answers as answers
 
@@ -108,6 +111,27 @@ def test_agent_state_reflects_current_task_immediately_on_assignment(tmp_path: P
     assert state.current_task_id is not None
 
 
+def test_full_lifecycle_creates_worktree_commit_and_pr_draft_on_real_git_repo(git_repo: Path) -> None:
+    _setup_club_with_mission(git_repo)
+    provider = DummyProvider()
+    for role in ("planner", "coordinator", "developer", "reviewer", "coordinator"):
+        runtime.run_agent_tick(git_repo, role, provider)
+
+    done = list((git_repo / "tasks/done").glob("TASK-*.json"))
+    assert len(done) == 1
+    task = json.loads(done[0].read_text(encoding="utf-8"))
+
+    assert task["owner"]["branch"].startswith("agent/developer/TASK-001")
+    assert task["audit"]["commits"], "developer's implement() should have committed NOTES.md"
+
+    worktree_path = Path(task["owner"]["worktree"])
+    assert (worktree_path / "NOTES.md").is_file()
+
+    pr_draft = git_repo / task["audit"]["pull_request"]
+    assert pr_draft.is_file()
+    assert task["id"] in pr_draft.read_text(encoding="utf-8")
+
+
 def test_coordinator_does_not_double_assign_a_busy_developer(tmp_path: Path) -> None:
     initialize_club(answers(tmp_path))
     create_mission(tmp_path, title="Add greet()", description="Add a greet(name) function with tests.")
@@ -119,3 +143,37 @@ def test_coordinator_does_not_double_assign_a_busy_developer(tmp_path: Path) -> 
     runtime.run_agent_tick(tmp_path, "coordinator", provider)
     assert len(list((tmp_path / "tasks/active").glob("TASK-*.json"))) == 1
     assert len(list((tmp_path / "tasks/backlog").glob("TASK-*.json"))) == 1
+
+
+def test_bootstrap_capability_rewrites_roster_then_ticks_continue(tmp_path: Path) -> None:
+    initialize_club(answers(
+        tmp_path,
+        agents={"master": AgentConfig(role="master", can_bootstrap=True, provider="ollama")},
+        workflow_pattern="custom",
+    ))
+    create_mission(tmp_path, title="Build API", description="A small Flask API with auth.")
+    reply = json.dumps({"roles": [{"id": "backend", "capabilities": ["code", "assign", "merge"]}]})
+
+    class _FakeResponse:
+        def read(self) -> bytes:
+            return json.dumps({"choices": [{"message": {"content": reply}}]}).encode("utf-8")
+
+        def __enter__(self) -> "_FakeResponse":
+            return self
+
+        def __exit__(self, *args: object) -> bool:
+            return False
+
+    provider = OllamaProvider(fetch=lambda request, timeout=None: _FakeResponse())
+
+    state = runtime.run_agent_tick(tmp_path, "master", provider)
+    assert state.status == "idle"
+
+    config = yaml.safe_load((tmp_path / ".clubs/club.yaml").read_text(encoding="utf-8"))
+    assert config["club"]["bootstrapped"] is True
+    assert "backend" in config["agents"]
+    assert "master" in config["agents"]
+
+    # A second tick against the agent id must not raise, even though the roster
+    # underneath it changed mid-flight.
+    runtime.run_agent_tick(tmp_path, "master", provider)

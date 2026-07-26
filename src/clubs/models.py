@@ -9,6 +9,10 @@ DEFAULT_ROLE_IDS = ("planner", "developer", "reviewer", "coordinator")
 DEFAULT_WORKFLOW = "planner-developer-reviewer-coordinator"
 
 
+PROVIDER_TYPES = ("dummy", "shell", "claude", "codex", "ollama", "openai", "gemini", "openrouter")
+TEXT_ONLY_PROVIDER_TYPES = ("ollama", "openai", "gemini", "openrouter")
+
+
 class AgentConfig(BaseModel):
     role: str
     shell: str = "dedicated"
@@ -17,11 +21,17 @@ class AgentConfig(BaseModel):
     can_review: bool = False
     can_assign: bool = False
     can_merge: bool = False
+    can_bootstrap: bool = False
+    provider: str = "dummy"
+    provider_command: str | None = None
+    provider_model: str | None = None
+    provider_base_url: str | None = None
 
 
 class ClubDetails(BaseModel):
     name: str = Field(min_length=1)
     type: str = "software-development"
+    bootstrapped: bool = False
 
 
 class RepositoryConfig(BaseModel):
@@ -45,6 +55,7 @@ class RuntimeConfig(BaseModel):
     heartbeat_interval_seconds: int = 10
     heartbeat_timeout_seconds: int = 60
     max_tasks_per_agent: int = 1
+    provider_timeout_seconds: int = 600
 
 
 class WorkflowConfig(BaseModel):

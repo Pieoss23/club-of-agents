@@ -92,6 +92,50 @@ def route_messages(root: Path) -> int:
     return routed
 
 
+def process_communication_messages(root: Path, agent_id: str) -> int:
+    """Handle diagnostic ping/pong messages addressed to one running agent.
+
+    This deliberately handles only the ``communication.*`` protocol. Workflow
+    messages remain durable in the inbox for their normal consumers. A processed
+    diagnostic message is renamed with a non-JSON suffix, preventing a poll loop
+    from replying to the same ping more than once.
+    """
+    inbox_dir = root / ".clubs/runtime/inbox" / agent_id
+    if not inbox_dir.is_dir():
+        return 0
+
+    handled = 0
+    for message_path in inbox_dir.glob("*.json"):
+        try:
+            message = Message.model_validate_json(message_path.read_text(encoding="utf-8"))
+        except ValueError:
+            continue
+        if message.to_agent != agent_id or message.type not in {"communication.ping", "communication.pong"}:
+            continue
+
+        try:
+            message_path.rename(message_path.with_suffix(".handled"))
+        except FileNotFoundError:
+            continue
+
+        if message.type == "communication.ping":
+            emit_event(root, "communication.ping.received", agent_id=agent_id, ping_id=message.id,
+                       from_agent=message.from_agent)
+            pong = send_message(
+                root, from_agent=agent_id, to_agent=message.from_agent,
+                type="communication.pong",
+                payload={"ping_id": message.id, "message": message.payload.get("message", "")},
+            )
+            emit_event(root, "communication.pong.sent", agent_id=agent_id, ping_id=message.id,
+                       pong_id=pong.id, to_agent=message.from_agent)
+        else:
+            emit_event(root, "communication.pong.received", agent_id=agent_id,
+                       ping_id=message.payload.get("ping_id"), from_agent=message.from_agent,
+                       pong_id=message.id)
+
+        handled += 1
+    return handled
+
 def emit_event(root: Path, event_type: str, **payload: object) -> None:
     """Append one JSON line to the shared event log, guarded by a file lock."""
     entry = {"type": event_type, "timestamp": datetime.now(timezone.utc).isoformat(), **payload}

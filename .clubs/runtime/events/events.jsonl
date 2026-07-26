@@ -1,2 +1,9 @@
 {"type": "task.assigned", "timestamp": "2026-07-25T20:16:48.587407+00:00", "task_id": "TASK-001", "owner": "worker-1", "by": "master"}
 {"type": "task.ready_for_review", "timestamp": "2026-07-25T20:19:19.284274+00:00", "task_id": "TASK-001", "by": "worker-1"}
+{"type": "communication.ping.sent", "timestamp": "2026-07-26T20:28:48.293771+00:00", "agent_id": "master", "to_agent": "worker-2", "ping_id": "MSG-3aa51ec81526"}
+{"type": "communication.ping.received", "timestamp": "2026-07-26T20:32:39.294988+00:00", "agent_id": "worker-2", "ping_id": "MSG-3aa51ec81526", "from_agent": "master"}
+{"type": "communication.pong.sent", "timestamp": "2026-07-26T20:32:39.296650+00:00", "agent_id": "worker-2", "ping_id": "MSG-3aa51ec81526", "pong_id": "MSG-96b896e7e2ea", "to_agent": "master"}
+{"type": "communication.ping.sent", "timestamp": "2026-07-26T20:32:39.974684+00:00", "agent_id": "worker-1", "to_agent": "worker-2", "ping_id": "MSG-138076e01550"}
+{"type": "communication.ping.received", "timestamp": "2026-07-26T20:32:42.301305+00:00", "agent_id": "worker-2", "ping_id": "MSG-138076e01550", "from_agent": "worker-1"}
+{"type": "communication.pong.sent", "timestamp": "2026-07-26T20:32:42.303186+00:00", "agent_id": "worker-2", "ping_id": "MSG-138076e01550", "pong_id": "MSG-1e5e3e35d23b", "to_agent": "worker-1"}
+{"type": "communication.pong.received", "timestamp": "2026-07-26T20:32:43.888158+00:00", "agent_id": "worker-1", "ping_id": "MSG-138076e01550", "from_agent": "worker-2", "pong_id": "MSG-1e5e3e35d23b"}
