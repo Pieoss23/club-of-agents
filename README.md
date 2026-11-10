@@ -1,13 +1,38 @@
 # Clubs of Agents (`club`)
 
-A local, provider-agnostic CLI that turns a normal Git repository into a structured
-multi-agent development environment: a shared `club.yaml`, a document pyramid, a
-filesystem message bus, Git worktree isolation per task, and pluggable "provider"
-adapters (a safe mechanical dummy, a generic shell script, Claude Code, or Codex) that
-actually do the planning/implementing/reviewing.
+Trasforma un normale repository Git in un ambiente di sviluppo multi-agente:
+più agenti lavorano sullo stesso progetto, ciascuno isolato in un worktree,
+coordinandosi attraverso file versionati invece che attraverso un database o
+un servizio esterno.
 
-The repository is the durable shared memory. Nothing here depends on a database, a
-web dashboard, or a specific LLM vendor — see `docs/cli/architecture.md`.
+**Il repository è la memoria condivisa.** Niente database, niente dashboard,
+nessun vincolo a un fornitore di modelli: gli agenti possono essere Claude
+Code, Codex, un modello locale via Ollama, uno script shell o un adattatore
+fittizio per i test.
+
+## Cosa dimostra questo progetto
+
+- **169 test automatici**, eseguibili con `python -m pytest -q`.
+- **Architettura a provider intercambiabili.** Nove adattatori — Claude,
+  Codex, Gemini, OpenAI, OpenRouter, Ollama, shell, più due fittizi — dietro
+  un'unica interfaccia. Il motore di workflow non sa quale modello sta
+  usando.
+- **Isolamento per task tramite worktree Git.** Ogni task lavora su un albero
+  separato: due agenti non si pestano i piedi sullo stesso file.
+- **Bus di messaggi su filesystem.** La comunicazione fra agenti passa da file
+  versionati, quindi è ispezionabile, diffabile e sopravvive a un riavvio.
+- **Motore di transizioni di stato** per il ciclo di vita dei task, con log di
+  audit di ogni passaggio.
+- **CLI completa** costruita con Typer e Rich, installabile come pacchetto.
+
+## Perché
+
+Far collaborare più agenti su una base di codice è facile da dimostrare e
+difficile da rendere affidabile: gli agenti si sovrascrivono, perdono il
+contesto, e il coordinamento finisce in un servizio che diventa un punto
+unico di rottura. Qui il coordinamento sta nel repository stesso — la stessa
+cosa che gli agenti stanno già modificando, e che un essere umano può leggere
+con `git log`.
 
 ## Quickstart
 
@@ -39,7 +64,7 @@ Full walkthrough: [docs/cli/quickstart.md](docs/cli/quickstart.md).
 All 10 milestones from the original design brief are implemented: CLI skeleton, init
 wizard, validation, status, missions/tasks, the filesystem message bus, the agent
 runner, the stage-transition workflow engine, Git worktree isolation, and provider
-adapters (shell/Claude/Codex). See `python -m pytest -q` (123 tests) for the current
+adapters (shell/Claude/Codex). See `python -m pytest -q` (169 test) for the current
 regression suite.
 
 ## The dogfooded example project
