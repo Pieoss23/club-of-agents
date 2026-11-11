@@ -1,5 +1,9 @@
 # Clubs of Agents (`club`)
 
+[![Tests](https://github.com/Pieoss23/club-of-agents/actions/workflows/tests.yml/badge.svg)](https://github.com/Pieoss23/club-of-agents/actions/workflows/tests.yml)
+[![Repository Policy](https://github.com/Pieoss23/club-of-agents/actions/workflows/repository-policy.yml/badge.svg)](https://github.com/Pieoss23/club-of-agents/actions/workflows/repository-policy.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Trasforma un normale repository Git in un ambiente di sviluppo multi-agente:
 più agenti lavorano sullo stesso progetto, ciascuno isolato in un worktree,
 coordinandosi attraverso file versionati invece che attraverso un database o
